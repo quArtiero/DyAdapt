@@ -1,9 +1,70 @@
-# DyAdapt: Adaptive ML System for Dyslexia Intervention
+# DyAdapt: Dyslexia Detection and Adaptive Learning System
 
-DyAdapt is a research-based application that demonstrates how machine learning can be used to both detect dyslexia and generate real-time, feedback-driven learning interventions. It is the applied result of an AP Research project aimed at bridging the gap between diagnosis and personalized support for dyslexic students.
+A research demonstration tool for dyslexia detection and adaptive learning support, combining machine learning with educational technology.
+
+## Research Context
+
+This application implements a machine learning-based system for early dyslexia detection and adaptive learning support. The system combines traditional assessment methods with modern data-driven approaches to provide personalized learning experiences.
+
+### Key Components
+1. **Dyslexia Detection**
+   - SVM classifier with feature selection
+   - SMOTE for handling class imbalance
+   - Confidence scoring system
+
+2. **Adaptive Learning System**
+   - Dynamic difficulty adjustment
+   - Real-time feedback
+   - Progress tracking
+
+3. **Performance Metrics**
+   - Accuracy tracking
+   - Response time analysis
+   - Intervention level adaptation
+
+### Methodology
+- Data Collection: Standardized assessment tasks
+- Feature Selection: ANOVA F-test
+- Model Training: SVM with balanced weights
+- Adaptive Logic: Performance-based adjustment
+
+## What This App Shows
+
+The application demonstrates:
+1. **Dyslexia Detection**
+   - Early identification using behavioral data
+   - Confidence-based predictions
+   - Feature importance analysis
+
+2. **Learning Progress**
+   - Session-by-session tracking
+   - Performance visualization
+   - Adaptive difficulty adjustment
+
+3. **Student Analytics**
+   - Accuracy trends
+   - Response time patterns
+   - Intervention effectiveness
+
+4. **Research Insights**
+   - Performance patterns
+   - Learning trajectories
+   - Intervention impact
+
+## Disclaimer
+
+This tool is for research demonstration purposes only. It should not be used as the sole basis for clinical diagnosis or educational decisions. The system is designed to showcase the potential of machine learning in educational technology and dyslexia research.
+
+Key limitations:
+- Based on simulated data
+- Limited assessment scope
+- Requires clinical validation
+- Not intended for clinical use
+
+For actual dyslexia assessment and intervention, please consult qualified educational and medical professionals.
 
 ## 🔍 Research Goal
-To develop a feedback-driven ML model that detects dyslexia and simulates how adaptive interventions can evolve in response to a student’s progress over time.
+To develop a feedback-driven ML model that detects dyslexia and simulates how adaptive interventions can evolve in response to a student's progress over time.
 
 ## 📁 How it Works
 
@@ -27,9 +88,6 @@ To develop a feedback-driven ML model that detects dyslexia and simulates how ad
 - Python (pandas, scikit-learn, matplotlib)
 - Flask or Streamlit for backend
 - HTML/CSS/JS or Streamlit components for frontend
-
-## 🚨 Disclaimer
-This application is a simulation for research purposes only. It is not a diagnostic tool and should not be used as medical advice.
 
 ## 🧠 Credits
 Developed by Pedro Quartiero as part of his AP Capstone Research project.
