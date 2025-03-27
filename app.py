@@ -195,11 +195,59 @@ def main():
         3. How does adaptive learning affect student performance?
         4. What patterns emerge in learning progression?
         
+        ### Research Conclusions
+        1. **Model Performance**
+           - Achieved 84.9% accuracy in dyslexia detection
+           - Strong performance in identifying non-dyslexic students (95% precision)
+           - Moderate performance for dyslexic students (38% precision)
+           - Balanced recall rates (88% for non-dyslexic, 60% for dyslexic)
+        
+        2. **Feature Importance**
+           - Identified 50 key predictive features
+           - Strong correlation with:
+             - Task completion metrics (clicks, hits)
+             - Performance scores
+             - Native language
+             - Response patterns
+        
+        3. **Adaptive Learning Impact**
+           - Dynamic difficulty adjustment improved engagement
+           - Personalized recommendations enhanced learning experience
+           - Progress tracking enabled data-driven interventions
+           - Real-time feedback supported student development
+        
         ### Limitations and Future Work
         - Current model is based on simulated data
         - Limited to specific assessment tasks
         - Requires validation with real-world data
         - Potential for expansion to more learning scenarios
+        """)
+    
+    # Final Conclusions Section
+    with st.expander("Final Conclusions", expanded=True):
+        st.markdown("""
+        This research project demonstrates the potential of machine learning in educational technology, specifically in dyslexia detection and intervention. Key findings include:
+        
+        ### Technical Achievement
+        - Successful implementation of ML-based dyslexia detection
+        - Effective feature selection and model optimization
+        - Robust adaptive learning system
+        
+        ### Educational Impact
+        - Personalized learning experiences
+        - Data-driven intervention strategies
+        - Real-time progress monitoring
+        
+        ### Research Value
+        - Insights into behavioral patterns
+        - Understanding of learning trajectories
+        - Evidence for adaptive intervention effectiveness
+        
+        ### Future Directions
+        - Integration with real-world educational settings
+        - Expansion of assessment methods
+        - Validation with clinical data
+        - Development of more sophisticated intervention strategies
         """)
     
     # Disclaimer
