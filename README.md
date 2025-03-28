@@ -1,6 +1,91 @@
 # DyAdapt: Dyslexia Detection and Adaptive Learning System
 
-A research demonstration tool for dyslexia detection and adaptive learning support, combining machine learning with educational technology.
+A machine learning-based system for early dyslexia detection and personalized learning support.
+
+## Features
+
+- Early dyslexia detection using ensemble ML models
+- Adaptive learning system with personalized interventions
+- Performance tracking and analysis
+- Multi-page web interface
+- Real-time predictions and recommendations
+
+## Prerequisites
+
+- Python 3.8 or higher
+- pip (Python package installer)
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/quArtiero/DyAdapt.git
+cd DyAdapt
+```
+
+2. Install required packages:
+```bash
+pip install -r requirements.txt
+```
+
+## Running the Application
+
+The application consists of two parts: a backend server and a frontend Streamlit app.
+
+### 1. Start the Backend Server
+
+Open a terminal and run:
+```bash
+python3 backend/app.py
+```
+The backend server will start on http://localhost:5001
+
+### 2. Start the Frontend Application
+
+Open another terminal and run:
+```bash
+streamlit run app.py
+```
+The Streamlit app will open in your default web browser at http://localhost:8501
+
+## Application Structure
+
+- **Home Page**: Overview and navigation
+- **Dyslexia Prediction**: Make predictions for new students
+- **Student Analysis**: View detailed analysis of student performance
+- **Results**: View model performance and research outcomes
+
+## Usage
+
+1. Navigate through the pages using the sidebar menu
+2. Enter student data in the Prediction page
+3. View analysis and results in the respective pages
+4. Use the download buttons to export data
+
+## Important Notes
+
+- This is a research demonstration tool and should not be used for clinical diagnosis
+- Always consult qualified professionals for proper assessment
+- The system requires both backend and frontend servers to be running simultaneously
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure both servers are running:
+   - Backend on port 5001
+   - Frontend on port 8501
+
+2. Check for error messages in the terminal
+
+3. Ensure all required packages are installed:
+```bash
+pip install -r requirements.txt
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Research Context
 
