@@ -131,21 +131,33 @@ with col3:
 st.subheader("Learning Progress Analysis")
 
 # Export Simulation Logs
-if st.button("Export Simulation Logs"):
-    try:
-        response = requests.post("http://localhost:5000/export_logs")
-        if response.status_code == 200:
-            st.success("Simulation logs exported successfully!")
-        else:
-            st.error("Failed to export logs")
-    except Exception as e:
-        st.error(f"Error exporting logs: {str(e)}")
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("Export Simulation Logs"):
+        try:
+            response = requests.post("http://localhost:5000/export_logs")
+            if response.status_code == 200:
+                st.success("Simulation logs exported successfully!")
+            else:
+                st.error("Failed to export logs")
+        except Exception as e:
+            st.error(f"Error exporting logs: {str(e)}")
+
+with col2:
+    # Add download button for the current analysis
+    csv_data = filtered_df.to_csv(index=False)
+    st.download_button(
+        label="Download Analysis CSV",
+        data=csv_data,
+        file_name="student_analysis.csv",
+        mime="text/csv"
+    )
 
 # Group Comparison
 st.subheader("Dyslexic vs Non-dyslexic Learning Patterns")
 
 try:
-    response = requests.get("http://localhost:5000/compare_groups")
+    response = requests.get("http://localhost:5001/compare_groups")
     if response.status_code == 200:
         comparison_data = response.json()
         
@@ -217,7 +229,7 @@ student_ids = list(filtered_df.index)
 selected_student = st.selectbox("Select Student", student_ids)
 
 try:
-    response = requests.get(f"http://localhost:5000/learning_curves/{selected_student}")
+    response = requests.get(f"http://localhost:5001/learning_curves/{selected_student}")
     if response.status_code == 200:
         curve_data = response.json()
         
@@ -306,19 +318,57 @@ st.markdown("""
    - Minimal scaffolding
 """)
 
+# Define intervention types dictionary
+intervention_types = {
+    1: "Phonological Support",
+    2: "Repetition-based Practice",
+    3: "Visual-Audio Reinforcement",
+    4: "Timed Decoding Challenges",
+    5: "Comprehension Extension"
+}
+
 # Performance by Intervention Level
 st.subheader("Performance by Intervention Level")
 
 # Calculate average performance for each level
 level_performance = []
 for level in range(1, 6):
+    # Calculate which sessions correspond to each level
+    # Level 1: Sessions 1-6
+    # Level 2: Sessions 7-12
+    # Level 3: Sessions 13-18
+    # Level 4: Sessions 19-24
+    # Level 5: Sessions 25-32
+    start_session = (level - 1) * 6 + 1
+    end_session = min(32, level * 6)
+    
+    # Calculate average metrics for these sessions
     level_data = filtered_df[filtered_df['Dyslexia'] == 1]  # Focus on dyslexic students
+    
+    # Calculate averages for each metric
+    avg_accuracy = 0
+    avg_score = 0
+    avg_missrate = 0
+    session_count = 0
+    
+    for session in range(start_session, end_session + 1):
+        if f'Accuracy{session}' in level_data.columns:
+            avg_accuracy += level_data[f'Accuracy{session}'].mean()
+            avg_score += level_data[f'Score{session}'].mean()
+            avg_missrate += level_data[f'Missrate{session}'].mean()
+            session_count += 1
+    
+    if session_count > 0:
+        avg_accuracy /= session_count
+        avg_score /= session_count
+        avg_missrate /= session_count
+    
     level_performance.append({
         'Level': level,
         'Intervention Type': intervention_types[level],
-        'Avg Accuracy': level_data[f'Accuracy{level}'].mean(),
-        'Avg Score': level_data[f'Score{level}'].mean(),
-        'Avg Miss Rate': level_data[f'Missrate{level}'].mean()
+        'Avg Accuracy': avg_accuracy,
+        'Avg Score': avg_score,
+        'Avg Miss Rate': avg_missrate
     })
 
 level_df = pd.DataFrame(level_performance)
@@ -328,10 +378,11 @@ numeric_columns = ['Avg Accuracy', 'Avg Score', 'Avg Miss Rate']
 for col in numeric_columns:
     level_df[col] = level_df[col].round(3)
 
-# Display level performance
+# Display level performance with fixed height
 st.dataframe(
     level_df,
     use_container_width=True,
+    height=150,  # Fixed height to prevent shaking
     hide_index=True
 )
 

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 from pathlib import Path
+import requests
 
 st.set_page_config(
     page_title="DyAdapt - Prediction",
@@ -229,4 +230,7 @@ with tab2:
         - **Prediction**: Based on the input data, the model predicts whether the student is likely to have dyslexia
         - **Confidence**: The probability score indicates how certain the model is about its prediction
         - **Note**: This is a screening tool and should be used in conjunction with professional assessment
-        """) 
+        """)
+
+# Make prediction request
+response = requests.post('http://localhost:5001/predict', json=data) 

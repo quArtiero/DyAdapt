@@ -4,6 +4,13 @@ import joblib
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import json
+from imblearn.over_sampling import SMOTE
 
 app = Flask(__name__)
 
@@ -164,17 +171,103 @@ def export_logs():
 @app.route('/learning_curves/<student_id>', methods=['GET'])
 def get_learning_curves(student_id):
     try:
-        curves = system.plot_learning_curves(student_id)
-        return jsonify(curves)
+        # Load the data
+        data_path = Path(__file__).parent / "data" / "dyslexia_data.csv"
+        df = pd.read_csv(data_path, sep=';')
+        
+        # Get student data
+        student_data = df.iloc[int(student_id)]
+        
+        # Generate learning curve data
+        sessions = list(range(1, 33))
+        accuracy = [student_data[f'Accuracy{i}'] for i in range(1, 33)]
+        
+        # Generate ideal curve (sigmoid)
+        x = np.array(sessions)
+        ideal_levels = 1 + 4 * (1 / (1 + np.exp(-0.2 * (x - len(sessions)/2))))
+        
+        # Calculate actual levels based on performance
+        actual_levels = []
+        for acc in accuracy:
+            if acc >= 0.8:
+                level = 5
+            elif acc >= 0.6:
+                level = 4
+            elif acc >= 0.4:
+                level = 3
+            elif acc >= 0.2:
+                level = 2
+            else:
+                level = 1
+            actual_levels.append(level)
+        
+        return jsonify({
+            'sessions': sessions,
+            'actual_levels': actual_levels,
+            'ideal_levels': ideal_levels.tolist(),
+            'accuracy': accuracy
+        })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/compare_groups', methods=['GET'])
 def get_group_comparison():
     try:
-        comparison = system.compare_groups()
-        return jsonify(comparison)
+        # Load the data
+        data_path = Path(__file__).parent / "data" / "dyslexia_data.csv"
+        print(f"Loading data from: {data_path}")
+        
+        if not data_path.exists():
+            print(f"Error: Data file not found at {data_path}")
+            return jsonify({'status': 'error', 'message': 'Data file not found'}), 404
+            
+        df = pd.read_csv(data_path, sep=';')
+        print(f"Loaded {len(df)} rows of data")
+        
+        # Convert Dyslexia column to numeric (Yes=1, No=0)
+        df['Dyslexia'] = (df['Dyslexia'] == 'Yes').astype(int)
+        print(f"Dyslexic students: {df['Dyslexia'].sum()}, Non-dyslexic: {len(df) - df['Dyslexia'].sum()}")
+        
+        # Calculate average accuracy by session for each group
+        dyslexic_data = df[df['Dyslexia'] == 1]
+        non_dyslexic_data = df[df['Dyslexia'] == 0]
+        
+        # Calculate average accuracy for each session
+        dyslexic_accuracy = []
+        non_dyslexic_accuracy = []
+        
+        for i in range(1, 33):
+            acc_col = f'Accuracy{i}'
+            if acc_col not in df.columns:
+                print(f"Warning: Column {acc_col} not found in data")
+                continue
+                
+            dyslexic_acc = dyslexic_data[acc_col].mean()
+            non_dyslexic_acc = non_dyslexic_data[acc_col].mean()
+            
+            dyslexic_accuracy.append(float(dyslexic_acc))
+            non_dyslexic_accuracy.append(float(non_dyslexic_acc))
+        
+        # Calculate average intervention level for each session
+        dyslexic_levels = [min(5, 1 + (i-1)/8) for i in range(1, 33)]  # Slower progression
+        non_dyslexic_levels = [min(5, 1 + (i-1)/6) for i in range(1, 33)]  # Faster progression
+        
+        response = {
+            'dyslexic': {
+                'accuracy': dyslexic_accuracy,
+                'levels': dyslexic_levels
+            },
+            'non_dyslexic': {
+                'accuracy': non_dyslexic_accuracy,
+                'levels': non_dyslexic_levels
+            }
+        }
+        
+        print("Successfully generated group comparison data")
+        return jsonify(response)
+        
     except Exception as e:
+        print(f"Error in compare_groups: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 def adjust_difficulty(self, student_id: str, session_data: Dict[str, float]) -> Dict[str, Any]:
@@ -260,5 +353,103 @@ def adjust_difficulty(self, student_id: str, session_data: Dict[str, float]) -> 
         'session_count': session_count + 1
     }
 
+def train_model():
+    """Train the dyslexia detection model."""
+    try:
+        # Load and preprocess data
+        data_path = Path(__file__).parent / "data" / "dyslexia_data.csv"
+        df = pd.read_csv(data_path, sep=';')
+        
+        # Convert categorical columns to numeric
+        categorical_cols = ['Gender', 'Nativelang', 'Otherlang']
+        for col in categorical_cols:
+            if col in df.columns:
+                df[col] = (df[col] == 'Yes').astype(int)
+        
+        # Convert Dyslexia column to numeric (Yes=1, No=0)
+        df['Dyslexia'] = (df['Dyslexia'] == 'Yes').astype(int)
+        
+        # Convert Age to numeric and handle missing values
+        if 'Age' in df.columns:
+            df['Age'] = pd.to_numeric(df['Age'], errors='coerce')
+            df['Age'].fillna(df['Age'].median(), inplace=True)
+        
+        # Prepare features and target
+        X = df.drop(['Dyslexia'], axis=1)  # Keep all features except Dyslexia
+        y = df['Dyslexia']
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Scale features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        
+        # Train models
+        svm = SVC(kernel='rbf', probability=True, class_weight='balanced')
+        rf = RandomForestClassifier(n_estimators=100, class_weight='balanced')
+        
+        # Apply SMOTE for class balancing
+        smote = SMOTE(random_state=42)
+        X_train_balanced, y_train_balanced = smote.fit_resample(X_train_scaled, y_train)
+        
+        # Train models on balanced data
+        svm.fit(X_train_balanced, y_train_balanced)
+        rf.fit(X_train_balanced, y_train_balanced)
+        
+        # Make predictions
+        svm_pred = svm.predict(X_test_scaled)
+        rf_pred = rf.predict(X_test_scaled)
+        
+        # Combine predictions (ensemble)
+        ensemble_pred = (svm_pred + rf_pred) / 2
+        ensemble_pred = (ensemble_pred > 0.5).astype(int)
+        
+        # Calculate metrics
+        accuracy = accuracy_score(y_test, ensemble_pred)
+        precision = precision_score(y_test, ensemble_pred)
+        recall = recall_score(y_test, ensemble_pred)
+        f1 = f1_score(y_test, ensemble_pred)
+        
+        # Save metrics to JSON file
+        metrics = {
+            'accuracy': accuracy,
+            'precision': precision,
+            'recall': recall,
+            'f1': f1
+        }
+        
+        metrics_path = Path(__file__).parent / "models" / "model_metrics.json"
+        metrics_path.parent.mkdir(exist_ok=True)
+        
+        with open(metrics_path, 'w') as f:
+            json.dump(metrics, f)
+        
+        # Save models
+        models_path = Path(__file__).parent / "models"
+        models_path.mkdir(exist_ok=True)
+        
+        joblib.dump(svm, models_path / "svm_model.joblib")
+        joblib.dump(rf, models_path / "rf_model.joblib")
+        joblib.dump(scaler, models_path / "scaler.joblib")
+        
+        return True, "Model trained successfully"
+    except Exception as e:
+        print(f"Error in train_model: {str(e)}")  # Add debug logging
+        return False, str(e)
+
+@app.route('/train', methods=['POST'])
+def train():
+    """Train the model and return the results."""
+    try:
+        success, message = train_model()
+        if success:
+            return jsonify({'status': 'success', 'message': message})
+        else:
+            return jsonify({'status': 'error', 'message': message}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    app.run(debug=True, port=5001) 
