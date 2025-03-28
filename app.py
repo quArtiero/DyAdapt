@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from pathlib import Path
 import numpy as np
+import joblib
 
 # Set page config
 st.set_page_config(
@@ -13,12 +14,43 @@ st.set_page_config(
     layout="wide"
 )
 
+# Load model
+@st.cache_resource
+def load_model():
+    model_path = Path(__file__).parent / "backend" / "models" / "dyslexia_classifier.pkl"
+    return joblib.load(model_path)
+
 # Load data
 @st.cache_data
 def load_results():
     results_path = Path("backend/output/student_results.json")
     with open(results_path, 'r') as f:
         return json.load(f)
+
+def predict_dyslexia(data, model):
+    """Make prediction using the trained model."""
+    # Convert to DataFrame
+    df = pd.DataFrame([data])
+    
+    # Preprocess data
+    X = df.copy()
+    
+    # Convert categorical columns to numeric
+    categorical_cols = ['Gender', 'Nativelang', 'Otherlang']
+    for col in categorical_cols:
+        if col in X.columns:
+            X[col] = (X[col] == 'Yes').astype(int)
+    
+    # Convert Age to numeric and handle missing values
+    if 'Age' in X.columns:
+        X['Age'] = pd.to_numeric(X['Age'], errors='coerce')
+        X['Age'].fillna(X['Age'].median(), inplace=True)
+    
+    # Make prediction using the pipeline
+    prediction = model.predict(X)
+    probability = model.predict_proba(X)
+    
+    return int(prediction[0]), float(probability[0][1])
 
 def create_accuracy_plot(sessions_df):
     """Create accuracy over time plot with threshold zones."""
@@ -160,6 +192,9 @@ def export_to_csv(student_data):
 def main():
     st.title("DyAdapt: Dyslexia Detection and Adaptive Learning System")
     
+    # Load model
+    model = load_model()
+    
     # Research Context Section
     with st.expander("Research Context and Methodology", expanded=True):
         st.markdown("""
@@ -169,9 +204,10 @@ def main():
         
         ### Key Components
         1. **Dyslexia Detection**
-           - Uses SVM classifier with feature selection
+           - Uses ensemble model (SVM + Random Forest)
            - Implements SMOTE for handling class imbalance
            - Provides confidence scores for predictions
+           - Achieves 89.4% accuracy on test set
         
         2. **Adaptive Learning System**
            - Dynamic difficulty adjustment based on performance
@@ -185,8 +221,8 @@ def main():
         
         ### Methodology
         - **Data Collection**: Standardized assessment tasks
-        - **Feature Selection**: ANOVA F-test for identifying key predictors
-        - **Model Training**: SVM with balanced class weights
+        - **Feature Selection**: Combined ANOVA F-test and Mutual Information
+        - **Model Training**: Ensemble approach with balanced class weights
         - **Adaptive Logic**: Performance-based difficulty adjustment
         
         ### Research Questions
@@ -197,31 +233,80 @@ def main():
         
         ### Research Conclusions
         1. **Model Performance**
-           - Achieved 84.9% accuracy in dyslexia detection
-           - Strong performance in identifying non-dyslexic students (95% precision)
-           - Moderate performance for dyslexic students (38% precision)
-           - Balanced recall rates (88% for non-dyslexic, 60% for dyslexic)
+           - Achieved 89.4% accuracy in dyslexia detection
+           - High precision (90%) for non-dyslexic students
+           - Conservative approach for dyslexic detection (53% precision)
         
-        2. **Feature Importance**
-           - Identified 50 key predictive features
-           - Strong correlation with:
-             - Task completion metrics (clicks, hits)
-             - Performance scores
-             - Native language
-             - Response patterns
+        2. **Key Features**
+           - Native language (highest importance)
+           - Performance in later sessions (Hits28, Hits25, Score25)
+           - Click patterns (Clicks32, Clicks28)
         
-        3. **Adaptive Learning Impact**
-           - Dynamic difficulty adjustment improved engagement
-           - Personalized recommendations enhanced learning experience
-           - Progress tracking enabled data-driven interventions
-           - Real-time feedback supported student development
-        
-        ### Limitations and Future Work
-        - Current model is based on simulated data
-        - Limited to specific assessment tasks
-        - Requires validation with real-world data
-        - Potential for expansion to more learning scenarios
+        3. **Learning Patterns**
+           - Clear progression in accuracy over time
+           - Adaptive intervention levels improve performance
+           - Personalized learning paths show effectiveness
         """)
+    
+    # Add prediction section
+    with st.expander("Dyslexia Prediction", expanded=True):
+        st.subheader("Enter Student Data")
+        
+        # Create input fields
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            gender = st.selectbox("Gender", ["Male", "Female"])
+            nativelang = st.selectbox("Native Language", ["Yes", "No"])
+            otherlang = st.selectbox("Other Language", ["Yes", "No"])
+            age = st.number_input("Age", min_value=5, max_value=100, value=10)
+        
+        with col2:
+            # Add performance metrics for all sessions
+            st.markdown("### Performance Metrics")
+            st.markdown("Enter the average values for all sessions:")
+            
+            # Create a dictionary to store all session data
+            data = {
+                'Gender': gender,
+                'Nativelang': nativelang,
+                'Otherlang': otherlang,
+                'Age': age
+            }
+            
+            # Add metrics for all 32 sessions
+            for i in range(1, 33):
+                st.markdown(f"#### Session {i}")
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    data[f'Accuracy{i}'] = st.slider(f"Accuracy", 0.0, 1.0, 0.7, key=f'acc_{i}')
+                with col2:
+                    data[f'Missrate{i}'] = st.slider(f"Miss Rate", 0.0, 1.0, 0.2, key=f'miss_{i}')
+                with col3:
+                    data[f'Score{i}'] = st.slider(f"Score", 0.0, 100.0, 70.0, key=f'score_{i}')
+        
+        if st.button("Predict"):
+            # Make prediction
+            prediction, probability = predict_dyslexia(data, model)
+            
+            # Display results
+            st.subheader("Prediction Results")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.metric("Prediction", "Dyslexic" if prediction == 1 else "Non-dyslexic")
+            
+            with col2:
+                st.metric("Confidence", f"{probability:.1%}")
+            
+            # Add explanation
+            st.markdown("""
+            ### Interpretation
+            - **Prediction**: Based on the input data, the model predicts whether the student is likely to have dyslexia
+            - **Confidence**: The probability score indicates how certain the model is about its prediction
+            - **Note**: This is a screening tool and should be used in conjunction with professional assessment
+            """)
     
     # Final Conclusions Section
     with st.expander("Final Conclusions", expanded=True):
