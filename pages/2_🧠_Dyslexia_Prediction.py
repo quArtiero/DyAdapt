@@ -27,18 +27,66 @@ def predict_dyslexia(data, model):
     categorical_cols = ['Gender', 'Nativelang', 'Otherlang']
     for col in categorical_cols:
         if col in X.columns:
-            X[col] = (X[col] == 'Yes').astype(int)
+            # Convert to lowercase and map to numeric
+            X[col] = X[col].str.lower().map({'yes': 1, 'no': 0, 'male': 1, 'female': 0})
     
     # Convert Age to numeric and handle missing values
     if 'Age' in X.columns:
         X['Age'] = pd.to_numeric(X['Age'], errors='coerce')
         X['Age'].fillna(X['Age'].median(), inplace=True)
     
+    # Create a list of all required features in the correct order
+    required_features = ['Gender', 'Nativelang', 'Otherlang', 'Age']
+    for i in range(1, 33):
+        required_features.extend([
+            f'Clicks{i}',
+            f'Hits{i}',
+            f'Misses{i}',
+            f'Score{i}',
+            f'Accuracy{i}',
+            f'Missrate{i}'
+        ])
+    
+    # Create a new DataFrame with all required features in the correct order
+    X_ordered = pd.DataFrame()
+    
+    # Add each feature in the correct order
+    for feature in required_features:
+        if feature in X.columns:
+            X_ordered[feature] = X[feature]
+        else:
+            X_ordered[feature] = 0
+    
+    # Scale numeric features
+    numeric_features = X_ordered.select_dtypes(include=['float64', 'int64']).columns
+    for feature in numeric_features:
+        if feature not in ['Gender', 'Nativelang', 'Otherlang']:  # Don't scale categorical features
+            # Calculate mean and std for the feature
+            mean_val = X_ordered[feature].mean()
+            std_val = X_ordered[feature].std()
+            
+            # Avoid division by zero
+            if std_val != 0:
+                X_ordered[feature] = (X_ordered[feature] - mean_val) / std_val
+            else:
+                X_ordered[feature] = 0  # If std is 0, set to 0 instead of NaN
+    
+    # Fill any remaining NaN values with 0
+    X_ordered = X_ordered.fillna(0)
+    
     # Make prediction using the pipeline
-    prediction = model.predict(X)
-    probability = model.predict_proba(X)
+    prediction = model.predict(X_ordered)
+    probability = model.predict_proba(X_ordered)
     
     return int(prediction[0]), float(probability[0][1])
+
+def calculate_session_metrics(accuracy, score):
+    """Calculate Clicks, Hits, and Misses based on accuracy and score."""
+    # Calculate total clicks based on score (assuming score is out of 100)
+    total_clicks = max(1, int(score / 10))  # Ensure at least 1 click
+    hits = int(total_clicks * accuracy)
+    misses = total_clicks - hits
+    return total_clicks, hits, misses
 
 st.title("🧠 Dyslexia Prediction")
 
@@ -67,22 +115,31 @@ with tab1:
         score = st.slider("Score", 0.0, 100.0, 70.0)
     
     if st.button("Make Prediction"):
+        # Calculate metrics for first session
+        clicks1, hits1, misses1 = calculate_session_metrics(accuracy, score)
+        
         # Prepare data
         data = {
             'Gender': gender,
             'Nativelang': nativelang,
             'Otherlang': otherlang,
             'Age': age,
+            'Clicks1': clicks1,
+            'Hits1': hits1,
+            'Misses1': misses1,
+            'Score1': score,
             'Accuracy1': accuracy,
-            'Missrate1': missrate,
-            'Score1': score
+            'Missrate1': missrate
         }
         
         # Fill in remaining sessions with same values
         for i in range(2, 33):
+            data[f'Clicks{i}'] = clicks1
+            data[f'Hits{i}'] = hits1
+            data[f'Misses{i}'] = misses1
+            data[f'Score{i}'] = score
             data[f'Accuracy{i}'] = accuracy
             data[f'Missrate{i}'] = missrate
-            data[f'Score{i}'] = score
         
         # Make prediction
         prediction, probability = predict_dyslexia(data, model)
@@ -135,11 +192,22 @@ with tab2:
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                data[f'Accuracy{i}'] = st.slider(f"Accuracy", 0.0, 1.0, 0.7, key=f'acc_{i}')
+                accuracy = st.slider(f"Accuracy", 0.0, 1.0, 0.7, key=f'acc_{i}')
             with col2:
-                data[f'Missrate{i}'] = st.slider(f"Miss Rate", 0.0, 1.0, 0.2, key=f'miss_{i}')
+                missrate = st.slider(f"Miss Rate", 0.0, 1.0, 0.2, key=f'miss_{i}')
             with col3:
-                data[f'Score{i}'] = st.slider(f"Score", 0.0, 100.0, 70.0, key=f'score_{i}')
+                score = st.slider(f"Score", 0.0, 100.0, 70.0, key=f'score_{i}')
+            
+            # Calculate session metrics
+            clicks, hits, misses = calculate_session_metrics(accuracy, score)
+            
+            # Store all metrics
+            data[f'Clicks{i}'] = clicks
+            data[f'Hits{i}'] = hits
+            data[f'Misses{i}'] = misses
+            data[f'Score{i}'] = score
+            data[f'Accuracy{i}'] = accuracy
+            data[f'Missrate{i}'] = missrate
     
     if st.button("Make Detailed Prediction"):
         # Make prediction
