@@ -38,7 +38,7 @@ Open a terminal and run:
 ```bash
 python3 backend/app.py
 ```
-The backend server will start on http://localhost:5001
+The backend server will start on http://localhost:5002
 
 ### 2. Start the Frontend Application
 
@@ -73,7 +73,7 @@ The Streamlit app will open in your default web browser at http://localhost:8501
 If you encounter any issues:
 
 1. Make sure both servers are running:
-   - Backend on port 5001
+   - Backend on port 5002
    - Frontend on port 8501
 
 2. Check for error messages in the terminal

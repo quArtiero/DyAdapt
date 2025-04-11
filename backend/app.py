@@ -11,12 +11,40 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import json
 from imblearn.over_sampling import SMOTE
+import logging
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+# Suppress version mismatch warnings
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 # Load the model and components
-model_path = Path('backend/models/dyslexia_classifier.pkl')
-predictor = joblib.load(model_path)
+try:
+    model_path = Path(__file__).parent / 'models' / 'dyslexia_classifier.pkl'
+    logger.info(f"Loading model from: {model_path}")
+    
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model file not found at {model_path}")
+        
+    predictor = joblib.load(model_path)
+    logger.info("Model loaded successfully")
+    
+    # Verify model components
+    if not hasattr(predictor, 'predict'):
+        raise AttributeError("Loaded model does not have predict method")
+        
+except Exception as e:
+    logger.error(f"Failed to load model: {str(e)}")
+    predictor = None
 
 class AdaptiveLearningSystem:
     def __init__(self):
@@ -107,9 +135,17 @@ system = AdaptiveLearningSystem()
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    if predictor is None:
+        logger.error("Prediction failed: Model not loaded")
+        return jsonify({
+            'status': 'error',
+            'message': 'Model not loaded'
+        }), 500
+        
     try:
         # Get data from request
         data = request.get_json()
+        logger.info(f"Received prediction request with data: {data}")
         
         # Convert to DataFrame
         df = pd.DataFrame([data])
@@ -126,7 +162,7 @@ def predict():
         # Convert Age to numeric and handle missing values
         if 'Age' in X.columns:
             X['Age'] = pd.to_numeric(X['Age'], errors='coerce')
-            X['Age'].fillna(X['Age'].median(), inplace=True)
+            X['Age'] = X['Age'].fillna(X['Age'].median())
         
         # Select features
         X_selected = predictor.feature_selector.transform(X)
@@ -138,6 +174,8 @@ def predict():
         prediction = predictor.model.predict(X_scaled)
         probability = predictor.model.predict_proba(X_scaled)
         
+        logger.info(f"Prediction: {prediction[0]}, Probability: {probability[0][1]}")
+        
         # Prepare response
         response = {
             'prediction': int(prediction[0]),
@@ -148,6 +186,7 @@ def predict():
         return jsonify(response)
     
     except Exception as e:
+        logger.error(f"Error in prediction: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)
@@ -155,6 +194,13 @@ def predict():
 
 @app.route('/health', methods=['GET'])
 def health_check():
+    if predictor is None:
+        logger.error("Health check failed: Model not loaded")
+        return jsonify({
+            'status': 'error',
+            'message': 'Model not loaded'
+        }), 500
+        
     return jsonify({
         'status': 'healthy',
         'model_loaded': True
@@ -452,4 +498,4 @@ def train():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5002) 

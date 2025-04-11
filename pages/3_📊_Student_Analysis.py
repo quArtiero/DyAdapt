@@ -110,21 +110,33 @@ st.subheader("Performance Distribution")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    fig = px.box(filtered_df, y=['Accuracy1', 'Accuracy16', 'Accuracy32'],
-                 title='Accuracy Distribution',
-                 labels={'value': 'Accuracy', 'variable': 'Session'})
+    fig = px.box(
+        filtered_df,
+        y=['Accuracy1', 'Accuracy16', 'Accuracy32'],
+        title='Accuracy Distribution',
+        labels={'value': 'Accuracy', 'variable': 'Session'},
+        range_y=[0, 1]  # Accuracy between 0 and 1 (or 0 to 100 if your values are percentages)
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 with col2:
-    fig = px.box(filtered_df, y=['Missrate1', 'Missrate16', 'Missrate32'],
-                 title='Miss Rate Distribution',
-                 labels={'value': 'Miss Rate', 'variable': 'Session'})
+    fig = px.box(
+        filtered_df,
+        y=['Missrate1', 'Missrate16', 'Missrate32'],
+        title='Miss Rate Distribution',
+        labels={'value': 'Miss Rate', 'variable': 'Session'},
+        range_y=[0, 1]  # Again, assume values are proportions. Adjust if you store them as percentages
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 with col3:
-    fig = px.box(filtered_df, y=['Score1', 'Score16', 'Score32'],
-                 title='Score Distribution',
-                 labels={'value': 'Score', 'variable': 'Session'})
+    fig = px.box(
+        filtered_df,
+        y=['Score1', 'Score16', 'Score32'],
+        title='Score Distribution',
+        labels={'value': 'Score', 'variable': 'Session'},
+        range_y=[0, 25]  # Based on your previous score plots, adjust as needed
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 # Learning Progress Analysis
@@ -135,7 +147,8 @@ col1, col2 = st.columns(2)
 with col1:
     if st.button("Export Simulation Logs"):
         try:
-            response = requests.post("http://localhost:5000/export_logs")
+            API_URL = "http://localhost:5002"
+            response = requests.post(f"{API_URL}/export_logs")
             if response.status_code == 200:
                 st.success("Simulation logs exported successfully!")
             else:
@@ -157,7 +170,8 @@ with col2:
 st.subheader("Dyslexic vs Non-dyslexic Learning Patterns")
 
 try:
-    response = requests.get("http://localhost:5001/compare_groups")
+    API_URL = "http://localhost:5002"
+    response = requests.get(f"{API_URL}/compare_groups")
     if response.status_code == 200:
         comparison_data = response.json()
         
@@ -229,7 +243,8 @@ student_ids = list(filtered_df.index)
 selected_student = st.selectbox("Select Student", student_ids)
 
 try:
-    response = requests.get(f"http://localhost:5001/learning_curves/{selected_student}")
+    API_URL = "http://localhost:5002"
+    response = requests.get(f"{API_URL}/learning_curves/{selected_student}")
     if response.status_code == 200:
         curve_data = response.json()
         

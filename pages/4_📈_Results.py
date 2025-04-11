@@ -49,11 +49,14 @@ with col4:
 # Model Performance
 st.subheader("Model Performance")
 
+# API endpoint
+API_URL = "http://localhost:5002"
+
 # Add train model button
 if st.button("Train Model"):
     with st.spinner("Training model..."):
         try:
-            response = requests.post('http://localhost:5001/train')
+            response = requests.post(f'{API_URL}/train')
             if response.status_code == 200:
                 st.success("Model trained successfully!")
                 # Reload metrics
@@ -147,13 +150,17 @@ def calculate_improvement(row):
 df['Improvement'] = df.apply(calculate_improvement, axis=1)
 
 # Create improvement comparison plot
+# Boxplot with capped y-axis and mean indicator
 fig = px.box(df,
              x='Dyslexia',
              y='Improvement',
-             title='Improvement Rates by Group',
+             title='Distribution of Accuracy Improvement by Dyslexia Status',
              labels={'Dyslexia': 'Dyslexic Status', 'Improvement': 'Improvement Rate (%)'},
              color='Dyslexia',
              color_discrete_map={0: '#2ca02c', 1: '#1f77b4'})
+
+fig.update_yaxes(range=[0, 500])  # Cap y-axis for clarity
+fig.update_traces(boxmean=True)   # Add mean and std dev
 
 st.plotly_chart(fig, use_container_width=True)
 

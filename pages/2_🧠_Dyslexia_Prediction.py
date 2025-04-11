@@ -16,6 +16,9 @@ def load_model():
     model_path = Path(__file__).parent.parent / "backend" / "models" / "dyslexia_classifier.pkl"
     return joblib.load(model_path)
 
+# API endpoint
+API_URL = "http://localhost:5002"
+
 def predict_dyslexia(data, model):
     """Make prediction using the trained model."""
     # Convert to DataFrame
@@ -34,7 +37,7 @@ def predict_dyslexia(data, model):
     # Convert Age to numeric and handle missing values
     if 'Age' in X.columns:
         X['Age'] = pd.to_numeric(X['Age'], errors='coerce')
-        X['Age'].fillna(X['Age'].median(), inplace=True)
+        X['Age'] = X['Age'].fillna(X['Age'].median())  # Avoid inplace operation
     
     # Create a list of all required features in the correct order
     required_features = ['Gender', 'Nativelang', 'Otherlang', 'Age']
@@ -48,15 +51,18 @@ def predict_dyslexia(data, model):
             f'Missrate{i}'
         ])
     
-    # Create a new DataFrame with all required features in the correct order
-    X_ordered = pd.DataFrame()
+    # Create a dictionary to store all features
+    feature_dict = {}
     
     # Add each feature in the correct order
     for feature in required_features:
         if feature in X.columns:
-            X_ordered[feature] = X[feature]
+            feature_dict[feature] = X[feature]
         else:
-            X_ordered[feature] = 0
+            feature_dict[feature] = 0
+    
+    # Create DataFrame from dictionary to avoid fragmentation
+    X_ordered = pd.DataFrame(feature_dict)
     
     # Scale numeric features
     numeric_features = X_ordered.select_dtypes(include=['float64', 'int64']).columns
@@ -142,8 +148,15 @@ with tab1:
             data[f'Accuracy{i}'] = accuracy
             data[f'Missrate{i}'] = missrate
         
-        # Make prediction
-        prediction, probability = predict_dyslexia(data, model)
+        # Make prediction request
+        response = requests.post(API_URL + '/predict', json=data)
+        if response.status_code == 200:
+            result = response.json()
+            prediction = result['prediction']
+            probability = result['probability']
+        else:
+            st.error("Failed to get prediction from server")
+            prediction, probability = predict_dyslexia(data, model)  # Fallback to local prediction
         
         # Display results
         st.subheader("Prediction Results")
@@ -211,8 +224,15 @@ with tab2:
             data[f'Missrate{i}'] = missrate
     
     if st.button("Make Detailed Prediction"):
-        # Make prediction
-        prediction, probability = predict_dyslexia(data, model)
+        # Make prediction request
+        response = requests.post(API_URL + '/predict', json=data)
+        if response.status_code == 200:
+            result = response.json()
+            prediction = result['prediction']
+            probability = result['probability']
+        else:
+            st.error("Failed to get prediction from server")
+            prediction, probability = predict_dyslexia(data, model)  # Fallback to local prediction
         
         # Display results
         st.subheader("Prediction Results")
@@ -230,7 +250,4 @@ with tab2:
         - **Prediction**: Based on the input data, the model predicts whether the student is likely to have dyslexia
         - **Confidence**: The probability score indicates how certain the model is about its prediction
         - **Note**: This is a screening tool and should be used in conjunction with professional assessment
-        """)
-
-# Make prediction request
-response = requests.post('http://localhost:5001/predict', json=data) 
+        """) 
