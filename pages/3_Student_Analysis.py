@@ -6,7 +6,7 @@ from pathlib import Path
 import requests
 
 st.set_page_config(
-    page_title="DyAdapt - Analysis",
+    page_title="DyAdapt - Student Analysis",
     page_icon="📊",
     layout="wide"
 )

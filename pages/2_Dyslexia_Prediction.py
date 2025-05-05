@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 
 st.set_page_config(
-    page_title="DyAdapt - Prediction",
+    page_title="DyAdapt - Dyslexia Prediction",
     page_icon="🧠",
     layout="wide"
 )
