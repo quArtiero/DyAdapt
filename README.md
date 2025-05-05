@@ -1,21 +1,28 @@
-# DyAdapt: Dyslexia Detection and Adaptive Learning System
+# DyAdapt: Dyslexia Detection and Adaptive Learning System 🧠
 
-A machine learning-based system for early dyslexia detection and personalized learning support.
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=Streamlit&logoColor=white)](https://streamlit.io/)
+[![Flask](https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 
-## Features
+A machine learning-based system for early dyslexia detection and personalized learning support, combining traditional assessment methods with modern data-driven approaches.
 
-- Early dyslexia detection using ensemble ML models
-- Adaptive learning system with personalized interventions
-- Performance tracking and analysis
-- Multi-page web interface
-- Real-time predictions and recommendations
+## 🌟 Key Features
 
-## Prerequisites
+- **Early Detection**: Ensemble ML models for dyslexia detection
+- **Adaptive Learning**: Personalized interventions and support
+- **Real-time Analytics**: Performance tracking and analysis
+- **Modern Interface**: Multi-page web application
+- **Smart Predictions**: Real-time recommendations and insights
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Python 3.8 or higher
 - pip (Python package installer)
 
-## Installation
+### Installation
 
 1. Clone the repository:
 ```bash
@@ -23,170 +30,134 @@ git clone https://github.com/quArtiero/DyAdapt.git
 cd DyAdapt
 ```
 
-2. Install required packages:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Application
+### Running the Application
 
-The application consists of two parts: a backend server and a frontend Streamlit app.
-
-### 1. Start the Backend Server
-
-Open a terminal and run:
+1. Start the backend server:
 ```bash
 python3 backend/app.py
 ```
-The backend server will start on http://localhost:5002
+The backend will be available at `http://localhost:5002`
 
-### 2. Start the Frontend Application
-
-Open another terminal and run:
+2. Launch the frontend:
 ```bash
 streamlit run app.py
 ```
-The Streamlit app will open in your default web browser at http://localhost:8501
+Access the application at `http://localhost:8501`
 
-## Application Structure
+## 📱 Application Structure
 
-- **Home Page**: Overview and navigation
-- **Dyslexia Prediction**: Make predictions for new students
-- **Student Analysis**: View detailed analysis of student performance
-- **Results**: View model performance and research outcomes
+| Page | Description |
+|------|-------------|
+| Home | Overview and navigation |
+| Dyslexia Prediction | Make predictions for new students |
+| Student Analysis | View detailed performance analysis |
+| Results | Model performance and research outcomes |
 
-## Usage
+## 💡 Usage Guide
 
-1. Navigate through the pages using the sidebar menu
+1. Navigate through pages using the sidebar menu
 2. Enter student data in the Prediction page
-3. View analysis and results in the respective pages
-4. Use the download buttons to export data
+3. View analysis and results in respective pages
+4. Export data using download buttons
 
-## Important Notes
+## 🔧 Technical Architecture
 
-- This is a research demonstration tool and should not be used for clinical diagnosis
-- Always consult qualified professionals for proper assessment
-- The system requires both backend and frontend servers to be running simultaneously
+### Core Components
 
-## Troubleshooting
+1. **Dyslexia Detection Engine**
+   - SVM classifier with feature selection
+   - SMOTE for class imbalance handling
+   - Confidence scoring system
+   - 84.9% overall accuracy
 
-If you encounter any issues:
+2. **Adaptive Learning System**
+   - Dynamic difficulty adjustment
+   - Real-time feedback mechanism
+   - Progress tracking and analytics
+   - Personalized intervention strategies
 
-1. Make sure both servers are running:
-   - Backend on port 5002
-   - Frontend on port 8501
+3. **Performance Analytics**
+   - Accuracy tracking
+   - Response time analysis
+   - Intervention effectiveness metrics
+   - Learning trajectory visualization
 
-2. Check for error messages in the terminal
+### Research Methodology
 
-3. Ensure all required packages are installed:
+- **Data Collection**: Standardized assessment tasks
+- **Feature Selection**: ANOVA F-test
+- **Model Training**: SVM with balanced weights
+- **Adaptive Logic**: Performance-based adjustment
+
+## 📊 Research Outcomes
+
+### Model Performance
+- 84.9% accuracy in dyslexia detection
+- 95% precision for non-dyslexic students
+- 38% precision for dyslexic students
+- 88% recall for non-dyslexic students
+- 60% recall for dyslexic students
+
+### Key Features
+- 50 identified predictive features
+- Strong correlations with:
+  - Task completion metrics
+  - Performance scores
+  - Native language
+  - Response patterns
+
+### Adaptive Learning Impact
+- Improved student engagement
+- Enhanced learning experience
+- Data-driven interventions
+- Real-time development support
+
+## ⚠️ Important Notes
+
+- This is a research demonstration tool
+- Not intended for clinical diagnosis
+- Consult qualified professionals for assessment
+- Both backend and frontend servers must run simultaneously
+
+## 🔍 Troubleshooting
+
+1. **Server Issues**
+   - Verify backend (port 5002) is running
+   - Confirm frontend (port 8501) is active
+   - Check terminal for error messages
+
+2. **Dependency Problems**
 ```bash
 pip install -r requirements.txt
 ```
 
-## License
+## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Research Context
+## 👨‍💻 Credits
 
-This application implements a machine learning-based system for early dyslexia detection and adaptive learning support. The system combines traditional assessment methods with modern data-driven approaches to provide personalized learning experiences.
+Developed by Pedro Quartiero as part of his AP Capstone Research project.
 
-### Key Components
-1. **Dyslexia Detection**
-   - SVM classifier with feature selection
-   - SMOTE for handling class imbalance
-   - Confidence scoring system
+Dataset source: [Kaggle Dyslexia Dataset](https://www.kaggle.com/datasets/luzrello/dyslexia)
 
-2. **Adaptive Learning System**
-   - Dynamic difficulty adjustment
-   - Real-time feedback
-   - Progress tracking
+## 🔮 Future Directions
 
-3. **Performance Metrics**
-   - Accuracy tracking
-   - Response time analysis
-   - Intervention level adaptation
+- Integration with educational settings
+- Expanded assessment methods
+- Clinical data validation
+- Enhanced intervention strategies
 
-### Methodology
-- Data Collection: Standardized assessment tasks
-- Feature Selection: ANOVA F-test
-- Model Training: SVM with balanced weights
-- Adaptive Logic: Performance-based adjustment
+## ⚠️ Disclaimer
 
-### Research Conclusions
-1. **Model Performance**
-   - Achieved 84.9% accuracy in dyslexia detection
-   - Strong performance in identifying non-dyslexic students (95% precision)
-   - Moderate performance for dyslexic students (38% precision)
-   - Balanced recall rates (88% for non-dyslexic, 60% for dyslexic)
+This tool is for research demonstration purposes only. It should not be used as the sole basis for clinical diagnosis or educational decisions.
 
-2. **Feature Importance**
-   - Identified 50 key predictive features
-   - Strong correlation with:
-     - Task completion metrics (clicks, hits)
-     - Performance scores
-     - Native language
-     - Response patterns
-
-3. **Adaptive Learning Impact**
-   - Dynamic difficulty adjustment improved engagement
-   - Personalized recommendations enhanced learning experience
-   - Progress tracking enabled data-driven interventions
-   - Real-time feedback supported student development
-
-## What This App Shows
-
-The application demonstrates:
-1. **Dyslexia Detection**
-   - Early identification using behavioral data
-   - Confidence-based predictions
-   - Feature importance analysis
-
-2. **Learning Progress**
-   - Session-by-session tracking
-   - Performance visualization
-   - Adaptive difficulty adjustment
-
-3. **Student Analytics**
-   - Accuracy trends
-   - Response time patterns
-   - Intervention effectiveness
-
-4. **Research Insights**
-   - Performance patterns
-   - Learning trajectories
-   - Intervention impact
-
-## Final Conclusions
-
-This research project demonstrates the potential of machine learning in educational technology, specifically in dyslexia detection and intervention. Key findings include:
-
-1. **Technical Achievement**
-   - Successful implementation of ML-based dyslexia detection
-   - Effective feature selection and model optimization
-   - Robust adaptive learning system
-
-2. **Educational Impact**
-   - Personalized learning experiences
-   - Data-driven intervention strategies
-   - Real-time progress monitoring
-
-3. **Research Value**
-   - Insights into behavioral patterns
-   - Understanding of learning trajectories
-   - Evidence for adaptive intervention effectiveness
-
-4. **Future Directions**
-   - Integration with real-world educational settings
-   - Expansion of assessment methods
-   - Validation with clinical data
-   - Development of more sophisticated intervention strategies
-
-## Disclaimer
-
-This tool is for research demonstration purposes only. It should not be used as the sole basis for clinical diagnosis or educational decisions. The system is designed to showcase the potential of machine learning in educational technology and dyslexia research.
-
-Key limitations:
+**Key Limitations:**
 - Based on simulated data
 - Limited assessment scope
 - Requires clinical validation

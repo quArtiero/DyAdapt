@@ -101,6 +101,41 @@ try:
         Here's how it performs:
         """)
 
+        # Create metrics bar chart
+        metrics_data = {
+            'Metric': ['Accuracy', 'Precision', 'Recall', 'F1 Score'],
+            'Value': [
+                metrics.get('accuracy', 0),
+                metrics.get('precision', 0),
+                metrics.get('recall', 0),
+                metrics.get('f1', 0)
+            ]
+        }
+        
+        metrics_df = pd.DataFrame(metrics_data)
+        
+        # Create bar chart
+        fig = go.Figure(data=[
+            go.Bar(
+                x=metrics_df['Metric'],
+                y=metrics_df['Value'],
+                text=[f'{v:.1%}' for v in metrics_df['Value']],
+                textposition='auto',
+                marker_color=['#1f77b4', '#2ca02c', '#ff7f0e', '#d62728']
+            )
+        ])
+        
+        fig.update_layout(
+            title='Model Performance Metrics',
+            yaxis_title='Score',
+            yaxis_tickformat='.0%',
+            yaxis_range=[0, 1],
+            height=400,
+            showlegend=False
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+
         # Create three columns for main metrics
         col1, col2, col3 = st.columns(3)
         
@@ -161,7 +196,7 @@ try:
 
         # Confusion Matrix Section
         st.markdown("""
-        ### 🎯 Prediction Results
+        ### 🎯 Confusion Matrix
         
         Here's how our model's predictions break down:
         """)
@@ -172,12 +207,17 @@ try:
             [false_negatives, true_positives]
         ])
 
+        # Calculate percentages for better interpretation
+        total = confusion_matrix.sum()
+        confusion_matrix_pct = (confusion_matrix / total * 100).round(1)
+
         # Create a more visually appealing heatmap
         fig = go.Figure(data=go.Heatmap(
             z=confusion_matrix,
             x=['Predicted Non-dyslexic', 'Predicted Dyslexic'],
             y=['Actual Non-dyslexic', 'Actual Dyslexic'],
-            text=confusion_matrix,
+            text=[[f"{val:,}\n({pct}%)" for val, pct in zip(row, pct_row)] 
+                  for row, pct_row in zip(confusion_matrix, confusion_matrix_pct)],
             texttemplate='%{text}',
             textfont={"size": 16},
             colorscale='Blues',
@@ -185,10 +225,10 @@ try:
         ))
 
         fig.update_layout(
-            title='Model Predictions Breakdown',
+            title='Confusion Matrix',
             xaxis_title='Model Prediction',
             yaxis_title='Actual Status',
-            height=300,
+            height=400,
             margin=dict(l=20, r=20, t=40, b=20)
         )
 
