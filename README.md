@@ -1,5 +1,8 @@
 # DyAdapt: Dyslexia Detection and Adaptive Learning System 🧠
 
+**Read the full AP Capstone research paper:**  
+[DyAdapt Research Paper (PDF)](https://docs.google.com/document/d/1NK4yK0CUrJnp_g2KtGymBGV9qfRjIkhwY2Ebz34YFfA/edit?usp=sharing)
+
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=Streamlit&logoColor=white)](https://streamlit.io/)
